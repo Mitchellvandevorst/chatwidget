@@ -7,8 +7,8 @@
   body {
     margin: 0;
     padding: 0;
-    font: 16px/1.5 "Inter", sans-serif;
-    background: #f9fafb;
+    font: 1.25em/1.5 "Inter", sans-serif;
+    background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,14 +24,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.06); /* Added drop shadow */
+    color: #262623; /* Text color inside the chat */
   }
   .msgs {
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
     display: flex;
-    flex-direction: column; /* 🔥 fix: stack messages vertically */
-    gap: 0.5rem;             /* nice spacing between bubbles */
+    flex-direction: column;
+    gap: 0.5rem;
   }
   .bubble {
     display: inline-block;
@@ -67,9 +69,10 @@
     border-radius: 12px;
     resize: none;
     font-family: inherit;
-    background: #f9fafb;
+    background: #fff; /* Changed background to white */
     outline: none;
-    font-size: 16px;
+    font-size: 1.25em;
+    color: #262623;
   }
   .send-btn {
     background: none;
@@ -106,6 +109,9 @@
     </button>
   </form>
 </div>
+</body>
+</html>
+
 
 <script>
 const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
