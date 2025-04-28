@@ -26,7 +26,7 @@
 
 <script>
 const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-const sessionId = localStorage.getItem('sid') || (localStorage.setItem('sid', crypto.randomUUID()), localStorage.getItem('sid'));
+const sessionId = crypto.randomUUID();  // 👈 NEW session ID every load
 
 const msgs = document.getElementById('msgs');
 const input = document.getElementById('input');
@@ -44,16 +44,15 @@ document.getElementById('composer').addEventListener('submit', async e => {
     const res = await fetch(`${webhook}?action=sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatInput: txt, sessionId })
+      body: JSON.stringify({ chatInput: txt, sessionId })   // ✅ include fresh sessionId
     });
     const data = await res.json();
     console.log('n8n responded:', data);
 
     loader.remove();
 
-    // Correct flexible handling
-    const messages = Array.isArray(data.responses) 
-      ? data.responses 
+    const messages = Array.isArray(data.responses)
+      ? data.responses
       : (data.output ? [data.output] : []);
 
     if (messages.length > 0) {
@@ -61,7 +60,7 @@ document.getElementById('composer').addEventListener('submit', async e => {
     } else {
       add('⚠️ No reply received', 'bot');
     }
-    
+
   } catch (err) {
     console.error(err);
     loader.textContent = '⚠️ error';
@@ -76,4 +75,5 @@ function add(text, role) {
   msgs.scrollTop = msgs.scrollHeight;
   return div;
 }
+
 </script>
