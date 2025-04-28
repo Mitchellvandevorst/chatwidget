@@ -44,9 +44,9 @@ document.getElementById('composer').addEventListener('submit', async e => {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ chatInput: txt, sessionId })
     });
-    const { responses=[] } = await res.json();
+    const { output=[] } = await res.json();
     loader.remove();
-    responses.forEach(r => add(r, 'bot'));
+    output.forEach(r => add(r, 'bot'));
   } catch(err){
     loader.textContent = '⚠️ error';
     console.error(err);
