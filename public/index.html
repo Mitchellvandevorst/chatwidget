@@ -24,14 +24,16 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
   }
   .msgs {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1.2rem; /* Increased gap between bubbles */
-    padding: 1.2rem 1rem 1.2rem 1rem; /* Add padding on top and bottom */
+    gap: 1.2rem;
+    padding: 1.2rem 1rem;
+    margin-bottom: 90px; /* Leave space for the composer */
   }
   .bubble {
     display: inline-block;
@@ -55,11 +57,20 @@
     align-self: flex-start;
   }
   .composer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
-    padding: 1.2rem 1rem; /* Match top/bottom padding to msgs */
+    padding: 1rem;
     background: #ffffff;
-    border-top: 1px solid #E8E4E4; /* Full-width horizontal line */
+    border: 1px solid #F3F3F3;
+    border-radius: 25px;
+    margin: 10px;
+    color: #7F7F84;
+    box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
+    box-sizing: border-box;
   }
   .composer textarea {
     flex: 1;
@@ -71,20 +82,29 @@
     background: #ffffff;
     outline: none;
     font-size: 1em;
-    color: #262623;
+    color: #7F7F84;
+    min-height: 44px;
+    max-height: 120px;
+    overflow-y: auto;
   }
   .send-btn {
-    background: none;
+    background: #F9F7F2;
     border: none;
     cursor: pointer;
     margin-left: 0.5rem;
     padding: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
   .send-btn img {
-    width: 28px;
-    height: 28px;
+    height: 22px;
+    width: auto;
+    opacity: 0.4;
   }
 
   @media (max-width: 600px) {
@@ -100,26 +120,21 @@
 </style>
 </head>
 
-  
-
 <body>
 <div class="chat">
   <div id="msgs" class="msgs"></div>
 
   <form id="composer" class="composer">
-    <textarea id="input" rows="1" placeholder="Type your message…"></textarea>
+    <textarea id="input" rows="1" placeholder="Type your message…" oninput="autoResize(this)"></textarea>
     <button type="submit" class="send-btn">
-      <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/4/send-ja31aidt5vl3o9cqzg4hl.png/send-tmq8104cb40rfwri9rga2.png?_a=DATAdtAAZAA0" alt="Send">
+      <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
     </button>
   </form>
 </div>
-</body>
-</html>
-
 
 <script>
 const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-const sessionId = crypto.randomUUID();  // always fresh session on reload
+const sessionId = crypto.randomUUID();
 const msgs = document.getElementById('msgs');
 const input = document.getElementById('input');
 
@@ -140,6 +155,7 @@ async function sendMessage() {
   if (!txt) return;
   add(txt, 'user');
   input.value = '';
+  autoResize(input); // reset height after sending
 
   const loader = addTypingBubble();
 
@@ -185,6 +201,12 @@ function addTypingBubble() {
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
   return div;
+}
+
+// Minimal autoResize function
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 </script>
 </body>
