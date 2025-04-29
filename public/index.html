@@ -63,7 +63,7 @@
     right: 0;
     display: flex;
     align-items: center;
-    padding: 1rem;
+    padding: 0 1rem; /* Only left/right padding */
     background: #ffffff;
     border: 1px solid #F3F3F3;
     border-radius: 25px;
@@ -71,10 +71,11 @@
     color: #7F7F84;
     box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
     box-sizing: border-box;
+    height: auto;
+    min-height: 64px;
   }
   .composer textarea {
     flex: 1;
-    padding: .75rem;
     border: none;
     border-radius: 12px;
     resize: none;
@@ -86,6 +87,11 @@
     min-height: 44px;
     max-height: 120px;
     overflow-y: auto;
+    margin: 0;
+    padding: 0; /* <-- No internal padding */
+    line-height: 1.5;
+    display: flex;
+    align-items: center; /* vertically center text */
   }
   .send-btn {
     background: #F9F7F2;
@@ -203,7 +209,6 @@ function addTypingBubble() {
   return div;
 }
 
-// Minimal autoResize function
 function autoResize(textarea) {
   textarea.style.height = 'auto';
   textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
