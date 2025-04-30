@@ -18,7 +18,6 @@
       box-sizing: border-box;
     }
 
-    /* -------- chat container -------- */
     .chat {
       width: 620px;
       height: 520px;
@@ -30,7 +29,6 @@
       position: relative;
     }
 
-    /* -------- scroll area ----------- */
     .msgs {
       flex: 1;
       overflow-y: auto;
@@ -51,26 +49,42 @@
       color: #E2E2E6;
       text-align: center;
       pointer-events: none;
-      transition: opacity .3s;
+      transition: opacity 0.3s;
     }
-    .msgs.hide-intro .intro-text { opacity: 0; }
+
+    .msgs.hide-intro .intro-text {
+      opacity: 0;
+    }
 
     .bubble {
       display: inline-block;
-      padding: .6rem 1rem;
+      padding: 0.6rem 1rem;
       border-radius: 18px;
       white-space: pre-line;
       max-width: 80%;
       word-break: break-word;
       font-size: 1em;
     }
-    .user { background:#214DBF; color:#fff;  border-bottom-right-radius:0; align-self:flex-end; }
-    .bot  { background:#F9F7F1; color:#262623; border-bottom-left-radius:0; align-self:flex-start; }
 
-    /* -------- composer -------------- */
+    .user {
+      background: #214DBF;
+      color: #fff;
+      border-bottom-right-radius: 0;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #F9F7F1;
+      color: #262623;
+      border-bottom-left-radius: 0;
+      align-self: flex-start;
+    }
+
     .composer {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
       padding: 10px 20px 10px 12px;
@@ -78,7 +92,7 @@
       border: 1px solid #F3F3F3;
       border-radius: 25px;
       margin: 10px;
-      box-shadow: 0 0 20px 10px rgba(0,0,0,.02);
+      box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
       min-height: 64px;
       box-sizing: border-box;
     }
@@ -87,21 +101,21 @@
       flex: 1;
       display: flex;
       align-items: center;
-      height: 44px;
       position: relative;
+      min-height: 44px;        /* baseline height */
     }
 
     #inputBox {
       flex: 1;
+      width: 100%;
       min-height: 44px;
       max-height: 120px;
-      width: 100%;
       overflow-y: auto;
       outline: none;
       border: none;
       font-family: inherit;
       font-size: 1em;
-      line-height: 44px;          /* centre caret for 1-line */
+      line-height: 44px;       /* caret centred for single-line */
       color: #262623;
       background: transparent;
       white-space: pre-wrap;
@@ -116,13 +130,17 @@
       align-items: center;
       color: #7F7F84;
       pointer-events: none;
-      transition: opacity .2s;
+      transition: opacity 0.2s;
     }
-    .placeholder.hidden { opacity: 0; }
+
+    .placeholder.hidden {
+      opacity: 0;
+    }
 
     .send-btn {
-      margin-left: .5rem;
-      width: 44px; height: 44px;
+      margin-left: 0.5rem;
+      width: 44px;
+      height: 44px;
       border: none;
       border-radius: 50%;
       background: #F9F7F2;
@@ -131,11 +149,22 @@
       justify-content: center;
       cursor: pointer;
     }
-    .send-btn img { height: 22px; opacity: .4; }
 
-    @media (max-width:600px){
-      body { padding:10px; height:calc(100vh - 20px); }
-      .chat{ width:100%; height:90vh; }
+    .send-btn img {
+      height: 22px;
+      opacity: 0.4;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+        height: calc(100vh - 20px);
+      }
+
+      .chat {
+        width: 100%;
+        height: 90vh;
+      }
     }
   </style>
 </head>
@@ -149,7 +178,7 @@
     </div>
 
     <form id="composer" class="composer" onsubmit="onSend(event)">
-      <div class="input-wrapper">
+      <div class="input-wrapper" id="wrapper">
         <div id="inputBox" contenteditable="true"
              oninput="onInput()"
              onkeydown="onKey(event)"></div>
@@ -163,47 +192,54 @@
   </div>
 
 <script>
-  const msgs = document.getElementById('msgs');
+  const msgs     = document.getElementById('msgs');
   const inputBox = document.getElementById('inputBox');
-  const ph = document.getElementById('ph');
+  const ph       = document.getElementById('ph');
+  const wrapper  = document.getElementById('wrapper');
 
-  function onInput(){
+  /* ------- input handlers -------- */
+  function onInput() {
     ph.classList.toggle('hidden', inputBox.textContent.trim());
     msgs.classList.add('hide-intro');
-    grow();
+    adjustHeights();
   }
 
-  function onKey(e){
-    if(e.key==='Enter' && !e.shiftKey){
+  function onKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       document.getElementById('composer').requestSubmit();
     }
   }
 
-  function onSend(e){
+  /* ------- send action ---------- */
+  function onSend(e) {
     e.preventDefault();
     const txt = inputBox.textContent.trim();
-    if(!txt) return;
-    add('user', txt);
-    inputBox.textContent='';
+    if (!txt) return;
+    addBubble('user', txt);
+    inputBox.textContent = '';
     ph.classList.remove('hidden');
-    grow();
+    adjustHeights();
   }
 
-  function grow(){
-    inputBox.style.height='auto';
-    const multi = inputBox.scrollHeight > 44;
-    inputBox.style.lineHeight = multi ? '1.4' : '44px';
-    inputBox.style.height = Math.max(inputBox.scrollHeight,44)+'px';
+  /* ------- grow/collapse logic -- */
+  function adjustHeights() {
+    inputBox.style.height = 'auto';
+    const needsMulti = inputBox.scrollHeight > 44;
+    inputBox.style.lineHeight = needsMulti ? '1.4' : '44px';
+    const h = Math.max(inputBox.scrollHeight, 44);
+    inputBox.style.height = h + 'px';
+    wrapper.style.height  = h + 'px';
   }
-  grow();
+  adjustHeights();  /* initial */
 
-  function add(role,text){
-    const d=document.createElement('div');
-    d.className=`bubble ${role}`;
-    d.textContent=text;
-    msgs.appendChild(d);
-    msgs.scrollTop=msgs.scrollHeight;
+  /* ------- bubble utilities ----- */
+  function addBubble(role, text) {
+    const div = document.createElement('div');
+    div.className = `bubble ${role}`;
+    div.textContent = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
   }
 </script>
 </body>
