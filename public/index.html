@@ -16,6 +16,7 @@
     color: #262623;
     box-sizing: border-box;
   }
+
   .chat {
     width: 620px;
     height: 520px;
@@ -26,6 +27,7 @@
     overflow: hidden;
     position: relative;
   }
+
   .msgs {
     flex: 1;
     overflow-y: auto;
@@ -34,7 +36,29 @@
     gap: 1.2rem;
     padding: 1.2rem 1rem;
     margin-bottom: 90px;
+    position: relative;
   }
+
+  .msgs::before {
+    content: "Start talking to our product\Aagent Alex below.";
+    white-space: pre-line;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    text-align: center;
+    color: #E2E2E6;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    font-weight: 400;
+  }
+
+  .msgs.hide-instructions::before {
+    opacity: 0;
+  }
+
   .bubble {
     display: inline-block;
     padding: .6rem 1rem;
@@ -44,12 +68,14 @@
     word-break: break-word;
     font-size: 1em;
   }
+
   .user {
     background: #214DBF;
     color: #fff;
     border-bottom-right-radius: 0;
     align-self: flex-end;
   }
+
   .bot {
     background: #F9F7F1;
     color: #262623;
@@ -62,15 +88,16 @@
     bottom: 0;
     left: 0;
     right: 0;
-    margin: 10px;
-    padding: 0 20px 0 12px;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px 10px 12px; /* Added top padding to align text */
     background: #ffffff;
     border: 1px solid #F3F3F3;
     border-radius: 25px;
+    margin: 10px;
+    color: #7F7F84;
     box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
     box-sizing: border-box;
-    display: flex;
-    align-items: center;
     min-height: 64px;
   }
 
@@ -89,7 +116,7 @@
     overflow-y: auto;
     margin: 0;
     padding: 0;
-    line-height: 1.4;
+    line-height: 44px; /* Align text vertically */
     display: flex;
     align-items: center;
   }
@@ -115,34 +142,12 @@
     opacity: 0.4;
   }
 
-  .composer-placeholder {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 44px;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    color: #E2E2E6;
-    opacity: 1;
-    pointer-events: none;
-    text-align: center;
-    padding: 0 20px;
-    transition: opacity 0.3s ease;
-    font-weight: 400;
-  }
-
-  .composer-placeholder.fade-out {
-    opacity: 0;
-  }
-
   @media (max-width: 600px) {
     body {
       padding: 10px;
       height: calc(100vh - 20px);
     }
+
     .chat {
       width: 100%;
       height: 90vh;
@@ -156,10 +161,7 @@
   <div id="msgs" class="msgs"></div>
 
   <form id="composer" class="composer">
-    <div id="composer-placeholder" class="composer-placeholder">
-      Start talking to our product<br />agent Alex below.
-    </div>
-    <textarea id="input" rows="1" placeholder="" oninput="handleInputChange()" onclick="handleInputChange()"></textarea>
+    <textarea id="input" rows="1" placeholder="Type your message…" oninput="handleInputChange()"></textarea>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
     </button>
@@ -171,7 +173,6 @@ const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-
 const sessionId = crypto.randomUUID();
 const msgs = document.getElementById('msgs');
 const input = document.getElementById('input');
-const placeholder = document.getElementById('composer-placeholder');
 
 document.getElementById('composer').addEventListener('submit', async e => {
   e.preventDefault();
@@ -185,10 +186,14 @@ input.addEventListener('keydown', async e => {
   }
 });
 
+input.addEventListener('input', () => {
+  input.style.color = '#262623';
+});
+
 function handleInputChange() {
   input.style.color = '#262623';
   if (input.value.trim().length > 0) {
-    placeholder.classList.add('fade-out');
+    msgs.classList.add('hide-instructions');
   }
   autoResize(input);
 }
@@ -199,9 +204,8 @@ async function sendMessage() {
   add(txt, 'user');
   input.value = '';
   autoResize(input);
-  input.style.color = '#7F7F84'; // Reset color if needed
-
-  placeholder.classList.add('fade-out');
+  input.style.color = '#7F7F84';
+  msgs.classList.add('hide-instructions');
 
   const loader = addTypingBubble();
 
