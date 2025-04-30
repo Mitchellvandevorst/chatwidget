@@ -18,19 +18,17 @@
       box-sizing: border-box;
     }
 
-    /* ---------------- main chat box ---------------- */
     .chat {
       width: 620px;
       height: 520px;
       max-width: 100%;
-      background: #ffffff;
+      background: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
     }
 
-    /* ---------------- scroll area ------------------ */
     .msgs {
       flex: 1;
       overflow-y: auto;
@@ -38,7 +36,7 @@
       flex-direction: column;
       gap: 1.2rem;
       padding: 1.2rem 1rem;
-      margin-bottom: 90px;          /* reserve space for composer */
+      margin-bottom: 90px;
       position: relative;
     }
 
@@ -51,51 +49,50 @@
       color: #E2E2E6;
       text-align: center;
       pointer-events: none;
-      transition: opacity 0.3s;
+      transition: opacity .3s;
     }
     .msgs.hide-intro .intro-text { opacity: 0; }
 
-    /* ---------------- message bubbles -------------- */
     .bubble {
       display: inline-block;
-      padding: 0.6rem 1rem;
+      padding: .6rem 1rem;
       border-radius: 18px;
       white-space: pre-line;
       max-width: 80%;
       word-break: break-word;
       font-size: 1em;
     }
-    .user { background: #214DBF; color: #fff;  border-bottom-right-radius: 0; align-self:flex-end; }
-    .bot  { background: #F9F7F1; color: #262623; border-bottom-left-radius: 0; align-self:flex-start; }
+    .user { background:#214DBF; color:#fff;  border-bottom-right-radius:0; align-self:flex-end; }
+    .bot  { background:#F9F7F1; color:#262623; border-bottom-left-radius:0; align-self:flex-start; }
 
-    /* ---------------- composer bar ----------------- */
     .composer {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       display: flex;
-      align-items: center;              /* centres wrapper + button */
+      align-items: center;
       padding: 10px 20px 10px 12px;
       background: #fff;
       border: 1px solid #F3F3F3;
       border-radius: 25px;
       margin: 10px;
-      box-shadow: 0 0 20px 10px rgba(0,0,0,0.02);
-      box-sizing: border-box;
+      box-shadow: 0 0 20px 10px rgba(0,0,0,.02);
       min-height: 64px;
+      box-sizing: border-box;
     }
 
     .input-wrapper {
       flex: 1;
       display: flex;
-      align-items: center;              /* centres the editable div */
+      align-items: center;        /* centres the editable box itself */
+      height: 44px;
       position: relative;
-      height: 44px;                     /* fixed baseline height */
     }
 
     #inputBox {
       flex: 1;
       min-height: 44px;
       max-height: 120px;
+      width: 100%;
       overflow-y: auto;
       outline: none;
       border: none;
@@ -103,31 +100,28 @@
       font-size: 1em;
       line-height: 1.4;
       color: #262623;
-      padding: 0;
       background: transparent;
+      padding: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      display: flex;              /* NEW */
+      align-items: center;        /* NEW */
     }
 
-    /* placeholder overlay */
     .placeholder {
       position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
+      left: 0; right: 0; top: 0; bottom: 0;
       display: flex;
       align-items: center;
       color: #7F7F84;
       pointer-events: none;
-      transition: opacity 0.2s;
-      padding-left: 0;                  /* matches text start */
-      font-size: 1em;
+      transition: opacity .2s;
     }
     .placeholder.hidden { opacity: 0; }
 
     .send-btn {
-      margin-left: 0.5rem;
-      width: 44px;
-      height: 44px;
+      margin-left: .5rem;
+      width: 44px; height: 44px;
       border: none;
       border-radius: 50%;
       background: #F9F7F2;
@@ -136,11 +130,11 @@
       justify-content: center;
       cursor: pointer;
     }
-    .send-btn img { height: 22px; opacity: 0.4; }
+    .send-btn img { height: 22px; opacity: .4; }
 
-    @media (max-width: 600px) {
-      body { padding: 10px; height: calc(100vh - 20px); }
-      .chat{ width: 100%; height: 90vh; }
+    @media (max-width:600px){
+      body { padding:10px; height:calc(100vh - 20px); }
+      .chat{ width:100%; height:90vh; }
     }
   </style>
 </head>
@@ -148,7 +142,7 @@
 <body>
   <div class="chat">
     <div id="msgs" class="msgs">
-      <div class="intro-text" id="intro">
+      <div id="intro" class="intro-text">
         Start talking to our product<br>agent Alex below.
       </div>
     </div>
@@ -165,18 +159,14 @@
   </div>
 
 <script>
-  const webhook = 'https://deepfeed.app.n8n.cloud/…';   //   ← your URL
-  const sessionId = crypto.randomUUID();
-  const msgs   = document.getElementById('msgs');
-  const intro  = document.getElementById('intro');
-  const input  = document.getElementById('inputBox');
-  const ph     = document.getElementById('ph');
+  const msgs      = document.getElementById('msgs');
+  const inputBox  = document.getElementById('inputBox');
+  const ph        = document.getElementById('ph');
 
-  /* ---------------------------------------------- */
   function onInput(){
-    ph.classList.toggle('hidden', input.textContent.trim().length);
+    ph.classList.toggle('hidden', inputBox.textContent.trim().length);
     msgs.classList.add('hide-intro');
-    autoGrow();
+    grow();
   }
 
   function onKey(e){
@@ -188,49 +178,27 @@
 
   function onSend(e){
     e.preventDefault();
-    const text = input.textContent.trim();
-    if(!text) return;
-    addBubble('user', text);
-    input.textContent = '';
+    const txt = inputBox.textContent.trim();
+    if(!txt) return;
+    add('user', txt);
+    inputBox.textContent = '';
     ph.classList.remove('hidden');
-    autoGrow();
-    sendToServer(text);
+    grow();
   }
 
-  /* auto–expand editable div */
-  function autoGrow(){
-    input.style.height = 'auto';
-    input.style.height = Math.max(input.scrollHeight, 44) + 'px';
-  }
-  autoGrow();
-
-  /* ---------------------------------------------- */
-  async function sendToServer(userMsg){
-    const typing = addBubble('bot','...');
-    try{
-      const r = await fetch(`${webhook}?action=sendMessage`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ chatInput:userMsg, sessionId })
-      });
-      const data = await r.json();
-      typing.remove();
-      (Array.isArray(data.responses)?data.responses:[data.output||''])
-        .filter(Boolean).forEach(m=>addBubble('bot',m));
-    }catch(err){
-      typing.textContent='⚠️ error';
-      console.error(err);
-    }
+  function grow(){
+    inputBox.style.height='auto';
+    inputBox.style.height=Math.max(inputBox.scrollHeight,44)+'px';
   }
 
-  function addBubble(role,text){
-    const d=document.createElement('div');
-    d.className=`bubble ${role==='user'?'user':'bot'}`;
-    d.textContent=text;
-    msgs.appendChild(d);
+  function add(role,text){
+    const div=document.createElement('div');
+    div.className=`bubble ${role}`;
+    div.textContent=text;
+    msgs.appendChild(div);
     msgs.scrollTop=msgs.scrollHeight;
-    return d;
   }
+  grow();
 </script>
 </body>
 </html>
