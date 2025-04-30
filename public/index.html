@@ -18,6 +18,7 @@
       box-sizing: border-box;
     }
 
+    /* ------------ chat container ------------ */
     .chat {
       width: 620px;
       height: 520px;
@@ -29,6 +30,7 @@
       position: relative;
     }
 
+    /* ------------ scroll area --------------- */
     .msgs {
       flex: 1;
       overflow-y: auto;
@@ -36,7 +38,7 @@
       flex-direction: column;
       gap: 1.2rem;
       padding: 1.2rem 1rem;
-      margin-bottom: 90px;
+      margin-bottom: 90px; /* space for composer */
       position: relative;
     }
 
@@ -51,11 +53,9 @@
       pointer-events: none;
       transition: opacity 0.3s;
     }
+    .msgs.hide-intro .intro-text { opacity: 0; }
 
-    .msgs.hide-intro .intro-text {
-      opacity: 0;
-    }
-
+    /* ------------ message bubbles ----------- */
     .bubble {
       display: inline-block;
       padding: 0.6rem 1rem;
@@ -65,26 +65,13 @@
       word-break: break-word;
       font-size: 1em;
     }
+    .user { background:#214DBF; color:#fff;  border-bottom-right-radius:0; align-self:flex-end; }
+    .bot  { background:#F9F7F1; color:#262623; border-bottom-left-radius:0; align-self:flex-start; }
 
-    .user {
-      background: #214DBF;
-      color: #fff;
-      border-bottom-right-radius: 0;
-      align-self: flex-end;
-    }
-
-    .bot {
-      background: #F9F7F1;
-      color: #262623;
-      border-bottom-left-radius: 0;
-      align-self: flex-start;
-    }
-
+    /* ------------ composer ------------------ */
     .composer {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       display: flex;
       align-items: center;
       padding: 10px 20px 10px 12px;
@@ -92,7 +79,7 @@
       border: 1px solid #F3F3F3;
       border-radius: 25px;
       margin: 10px;
-      box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 0 20px 10px rgba(0,0,0,.02);
       min-height: 64px;
       box-sizing: border-box;
     }
@@ -102,7 +89,7 @@
       display: flex;
       align-items: center;
       position: relative;
-      min-height: 44px;        /* baseline height */
+      min-height: 44px;          /* baseline height */
     }
 
     #inputBox {
@@ -115,7 +102,7 @@
       border: none;
       font-family: inherit;
       font-size: 1em;
-      line-height: 44px;       /* caret centred for single-line */
+      line-height: 44px;         /* caret centred when single-line */
       color: #262623;
       background: transparent;
       white-space: pre-wrap;
@@ -132,15 +119,11 @@
       pointer-events: none;
       transition: opacity 0.2s;
     }
-
-    .placeholder.hidden {
-      opacity: 0;
-    }
+    .placeholder.hidden { opacity: 0; }
 
     .send-btn {
       margin-left: 0.5rem;
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border: none;
       border-radius: 50%;
       background: #F9F7F2;
@@ -149,21 +132,22 @@
       justify-content: center;
       cursor: pointer;
     }
+    .send-btn img { height: 22px; opacity: 0.4; }
 
-    .send-btn img {
-      height: 22px;
-      opacity: 0.4;
-    }
-
+    /* ------------ mobile tweaks ------------- */
     @media (max-width: 600px) {
       body {
         padding: 10px;
         height: calc(100vh - 20px);
       }
-
       .chat {
         width: 100%;
         height: 90vh;
+      }
+      .intro-text {
+        font-size: 20px;   /* smaller font on mobile */
+        max-width: 90%;    /* allow wider lines */
+        white-space: pre-line;
       }
     }
   </style>
@@ -179,7 +163,8 @@
 
     <form id="composer" class="composer" onsubmit="onSend(event)">
       <div class="input-wrapper" id="wrapper">
-        <div id="inputBox" contenteditable="true"
+        <div id="inputBox"
+             contenteditable="true"
              oninput="onInput()"
              onkeydown="onKey(event)"></div>
         <div id="ph" class="placeholder">Type your message…</div>
@@ -197,7 +182,6 @@
   const ph       = document.getElementById('ph');
   const wrapper  = document.getElementById('wrapper');
 
-  /* ------- input handlers -------- */
   function onInput() {
     ph.classList.toggle('hidden', inputBox.textContent.trim());
     msgs.classList.add('hide-intro');
@@ -211,7 +195,6 @@
     }
   }
 
-  /* ------- send action ---------- */
   function onSend(e) {
     e.preventDefault();
     const txt = inputBox.textContent.trim();
@@ -222,18 +205,16 @@
     adjustHeights();
   }
 
-  /* ------- grow/collapse logic -- */
   function adjustHeights() {
     inputBox.style.height = 'auto';
-    const needsMulti = inputBox.scrollHeight > 44;
-    inputBox.style.lineHeight = needsMulti ? '1.4' : '44px';
+    const multi = inputBox.scrollHeight > 44;
+    inputBox.style.lineHeight = multi ? '1.4' : '44px';
     const h = Math.max(inputBox.scrollHeight, 44);
     inputBox.style.height = h + 'px';
     wrapper.style.height  = h + 'px';
   }
-  adjustHeights();  /* initial */
+  adjustHeights(); /* initial */
 
-  /* ------- bubble utilities ----- */
   function addBubble(role, text) {
     const div = document.createElement('div');
     div.className = `bubble ${role}`;
