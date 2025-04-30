@@ -33,7 +33,7 @@
     flex-direction: column;
     gap: 1.2rem;
     padding: 1.2rem 1rem;
-    margin-bottom: 90px; /* Leave space for the composer */
+    margin-bottom: 90px;
   }
   .bubble {
     display: inline-block;
@@ -56,24 +56,24 @@
     border-bottom-left-radius: 0;
     align-self: flex-start;
   }
+
   .composer {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    display: flex;
-    align-items: center;
-    padding: 0 20px 0 12px; /* Only left/right padding */
+    margin: 10px;
+    padding: 0 20px 0 12px;
     background: #ffffff;
     border: 1px solid #F3F3F3;
     border-radius: 25px;
-    margin: 10px;
-    color: #7F7F84;
     box-shadow: 0 0 20px 10px rgba(0, 0, 0, 0.02);
     box-sizing: border-box;
-    height: auto;
+    display: flex;
+    align-items: center;
     min-height: 64px;
   }
+
   .composer textarea {
     flex: 1;
     border: none;
@@ -88,9 +88,12 @@
     max-height: 120px;
     overflow-y: auto;
     margin: 0;
-    padding: 18px 0 0 0; /* Top padding only for vertical alignment */
+    padding: 0;
     line-height: 1.4;
+    display: flex;
+    align-items: center;
   }
+
   .send-btn {
     background: #F9F7F2;
     border: none;
@@ -105,10 +108,34 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
+
   .send-btn img {
     height: 22px;
     width: auto;
     opacity: 0.4;
+  }
+
+  .composer-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 44px;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #E2E2E6;
+    opacity: 1;
+    pointer-events: none;
+    text-align: center;
+    padding: 0 20px;
+    transition: opacity 0.3s ease;
+    font-weight: 400;
+  }
+
+  .composer-placeholder.fade-out {
+    opacity: 0;
   }
 
   @media (max-width: 600px) {
@@ -129,7 +156,10 @@
   <div id="msgs" class="msgs"></div>
 
   <form id="composer" class="composer">
-    <textarea id="input" rows="1" placeholder="Type your message…" oninput="autoResize(this)"></textarea>
+    <div id="composer-placeholder" class="composer-placeholder">
+      Start talking to our product<br />agent Alex below.
+    </div>
+    <textarea id="input" rows="1" placeholder="" oninput="handleInputChange()" onclick="handleInputChange()"></textarea>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
     </button>
@@ -141,6 +171,7 @@ const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-
 const sessionId = crypto.randomUUID();
 const msgs = document.getElementById('msgs');
 const input = document.getElementById('input');
+const placeholder = document.getElementById('composer-placeholder');
 
 document.getElementById('composer').addEventListener('submit', async e => {
   e.preventDefault();
@@ -154,12 +185,23 @@ input.addEventListener('keydown', async e => {
   }
 });
 
+function handleInputChange() {
+  input.style.color = '#262623';
+  if (input.value.trim().length > 0) {
+    placeholder.classList.add('fade-out');
+  }
+  autoResize(input);
+}
+
 async function sendMessage() {
   const txt = input.value.trim();
   if (!txt) return;
   add(txt, 'user');
   input.value = '';
-  autoResize(input); // reset height after sending
+  autoResize(input);
+  input.style.color = '#7F7F84'; // Reset color if needed
+
+  placeholder.classList.add('fade-out');
 
   const loader = addTypingBubble();
 
