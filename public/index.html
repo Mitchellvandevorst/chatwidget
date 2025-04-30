@@ -168,7 +168,7 @@
 
   <form id="composer" class="composer">
     <div class="input-wrapper">
-      <textarea id="input" rows="1" placeholder="Type your message…" oninput="handleInputChange()"></textarea>
+      <textarea id="input" rows="1" oninput="handleInputChange()">​</textarea> <!-- ← ZWSP here -->
     </div>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
@@ -197,6 +197,9 @@ input.addEventListener('keydown', async e => {
 
 input.addEventListener('input', () => {
   input.style.color = '#262623';
+  if (input.value.trim() === '') {
+    input.value = '​'; // reinsert ZWSP if user deletes all
+  }
 });
 
 function handleInputChange() {
@@ -208,10 +211,10 @@ function handleInputChange() {
 }
 
 async function sendMessage() {
-  const txt = input.value.trim();
+  const txt = input.value.replace(/\u200B/g, '').trim(); // remove ZWSP
   if (!txt) return;
   add(txt, 'user');
-  input.value = '';
+  input.value = '​'; // reset to ZWSP
   autoResize(input);
   input.style.color = '#7F7F84';
   msgs.classList.add('hide-intro');
