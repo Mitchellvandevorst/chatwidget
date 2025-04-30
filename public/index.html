@@ -100,7 +100,14 @@
     min-height: 64px;
   }
 
-  .composer textarea {
+  .input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    height: 44px;
+  }
+
+  .input-wrapper textarea {
     flex: 1;
     border: none;
     border-radius: 12px;
@@ -110,14 +117,10 @@
     outline: none;
     font-size: 1em;
     color: #7F7F84;
-    min-height: 44px;
-    max-height: 120px;
-    overflow-y: auto;
+    height: 100%;
     margin: 0;
     padding: 0;
-    line-height: 1.4; /* Reduced line spacing */
-    display: flex;
-    align-items: center;
+    line-height: normal;
   }
 
   .send-btn {
@@ -164,7 +167,9 @@
   </div>
 
   <form id="composer" class="composer">
-    <textarea id="input" rows="1" placeholder="Type your message…" oninput="handleInputChange()"></textarea>
+    <div class="input-wrapper">
+      <textarea id="input" rows="1" placeholder="Type your message…" oninput="handleInputChange()"></textarea>
+    </div>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
     </button>
