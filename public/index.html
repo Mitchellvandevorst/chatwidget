@@ -35,7 +35,7 @@
     flex-direction: column;
     gap: 1.2rem;
     padding: 1.2rem 1rem;
-    margin-bottom: 90px;
+    margin-bottom: 90px; /* space for composer */
     position: relative;
   }
 
@@ -53,7 +53,6 @@
     font-weight: 400;
     line-height: 1.4;
   }
-
   .hide-intro .intro-text {
     opacity: 0;
   }
@@ -67,28 +66,14 @@
     word-break: break-word;
     font-size: 1em;
   }
-
-  .user {
-    background: #214DBF;
-    color: #fff;
-    border-bottom-right-radius: 0;
-    align-self: flex-end;
-  }
-
-  .bot {
-    background: #F9F7F1;
-    color: #262623;
-    border-bottom-left-radius: 0;
-    align-self: flex-start;
-  }
+  .user { background: #214DBF; color: #fff; border-bottom-right-radius: 0; align-self: flex-end; }
+  .bot  { background: #F9F7F1; color: #262623; border-bottom-left-radius: 0; align-self: flex-start; }
 
   .composer {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     display: flex;
-    align-items: center;
+    align-items: center;               /* <-- center vertically */
     padding: 10px 20px 10px 12px;
     background: #ffffff;
     border: 1px solid #F3F3F3;
@@ -104,8 +89,7 @@
     position: relative;
     flex: 1;
     display: flex;
-    align-items: center;
-    height: auto;
+    align-items: center;               /* <-- center textarea inside */
   }
 
   .input-wrapper textarea {
@@ -118,12 +102,11 @@
     resize: none;
     background: #fff;
     color: #7F7F84;
-    min-height: 44px;
+    min-height: 44px;                  /* ensure at least 44px */
     max-height: 120px;
     overflow-y: hidden;
     width: 100%;
   }
-
   .input-wrapper textarea::placeholder {
     color: #7F7F84;
   }
@@ -138,8 +121,7 @@
     line-height: 1.4;
     padding: 0;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
   }
 
@@ -148,16 +130,13 @@
     border: none;
     cursor: pointer;
     margin-left: 0.5rem;
-    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 44px; height: 44px;
     border-radius: 50%;
     flex-shrink: 0;
   }
-
   .send-btn img {
     height: 22px;
     width: auto;
@@ -165,133 +144,128 @@
   }
 
   @media (max-width: 600px) {
-    body {
-      padding: 10px;
-      height: calc(100vh - 20px);
-    }
-
-    .chat {
-      width: 100%;
-      height: 90vh;
-    }
+    body { padding: 10px; height: calc(100vh - 20px); }
+    .chat { width: 100%; height: 90vh; }
   }
 </style>
 </head>
 
 <body>
-<div class="chat">
-  <div id="msgs" class="msgs">
-    <div id="introText" class="intro-text">
-      Start talking to our product<br>agent Alex below.
+  <div class="chat">
+    <div id="msgs" class="msgs">
+      <div id="introText" class="intro-text">
+        Start talking to our product<br>agent Alex below.
+      </div>
     </div>
+
+    <form id="composer" class="composer">
+      <div class="input-wrapper">
+        <textarea
+          id="input"
+          rows="1"
+          placeholder="Type your message…"
+          oninput="handleInputChange()"
+        ></textarea>
+        <div id="shadow" class="input-shadow"></div>
+      </div>
+      <button type="submit" class="send-btn">
+        <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
+      </button>
+    </form>
   </div>
 
-  <form id="composer" class="composer">
-    <div class="input-wrapper">
-      <textarea
-        id="input"
-        rows="1"
-        placeholder="Type your message…"
-        oninput="handleInputChange()"
-      ></textarea>
-      <div id="shadow" class="input-shadow"></div>
-    </div>
-    <button type="submit" class="send-btn">
-      <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
-    </button>
-  </form>
-</div>
+  <script>
+  const webhook   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
+  const sessionId = crypto.randomUUID();
+  const msgs      = document.getElementById('msgs');
+  const input     = document.getElementById('input');
+  const shadow    = document.getElementById('shadow');
+  const introText = document.getElementById('introText');
 
-<script>
-const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-const sessionId = crypto.randomUUID();
-const msgs = document.getElementById('msgs');
-const input = document.getElementById('input');
-const shadow = document.getElementById('shadow');
-const introText = document.getElementById('introText');
-
-document.getElementById('composer').addEventListener('submit', async e => {
-  e.preventDefault();
-  await sendMessage();
-});
-
-input.addEventListener('keydown', async e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  document.getElementById('composer').addEventListener('submit', async e => {
     e.preventDefault();
     await sendMessage();
-  }
-});
+  });
 
-input.addEventListener('input', () => {
-  input.style.color = '#262623';
-  syncShadow();
-});
-
-function handleInputChange() {
-  input.style.color = '#262623';
-  if (input.value.trim().length > 0) {
-    msgs.classList.add('hide-intro');
-  }
-  syncShadow();
-}
-
-function syncShadow() {
-  shadow.textContent = input.value + '\u200B'; // forces line break if needed
-  input.style.height = shadow.offsetHeight + 'px';
-}
-
-async function sendMessage() {
-  const txt = input.value.trim();
-  if (!txt) return;
-  add(txt, 'user');
-  input.value = '';
-  input.style.color = '#7F7F84';
-  syncShadow();
-  msgs.classList.add('hide-intro');
-
-  const loader = addTypingBubble();
-
-  try {
-    const res = await fetch(`${webhook}?action=sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatInput: txt, sessionId })
-    });
-    const data = await res.json();
-    loader.remove();
-
-    const messages = Array.isArray(data.responses)
-      ? data.responses
-      : (data.output ? [data.output] : []);
-
-    if (messages.length > 0) {
-      messages.forEach(r => add(r, 'bot'));
-    } else {
-      add('⚠️ No reply received', 'bot');
+  input.addEventListener('keydown', async e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      await sendMessage();
     }
-  } catch (err) {
-    console.error(err);
-    loader.textContent = '⚠️ error';
+  });
+
+  input.addEventListener('input', () => {
+    input.style.color = '#262623';
+    syncShadow();
+  });
+
+  function handleInputChange() {
+    input.style.color = '#262623';
+    if (input.value.trim().length > 0) {
+      msgs.classList.add('hide-intro');
+    }
+    syncShadow();
   }
-}
 
-function add(text, role) {
-  const div = document.createElement('div');
-  div.className = `bubble ${role === 'user' ? 'user' : 'bot'}`;
-  div.textContent = text;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
+  function syncShadow() {
+    // put your text into the hidden div:
+    shadow.textContent = input.value + '\u200B';
+    // measure it:
+    const h = shadow.offsetHeight;
+    // enforce at least 44px:
+    input.style.height = Math.max(h, 44) + 'px';
+  }
 
-function addTypingBubble() {
-  const div = document.createElement('div');
-  div.className = 'bubble bot';
-  div.innerHTML = '<span>...</span>';
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
-</script>
+  async function sendMessage() {
+    const txt = input.value.trim();
+    if (!txt) return;
+    add(txt, 'user');
+    input.value = '';
+    input.style.color = '#7F7F84';
+    syncShadow();
+    msgs.classList.add('hide-intro');
+
+    const loader = addTypingBubble();
+    try {
+      const res  = await fetch(`${webhook}?action=sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatInput: txt, sessionId })
+      });
+      const data = await res.json();
+      loader.remove();
+
+      const msgsOut = Array.isArray(data.responses)
+        ? data.responses
+        : (data.output ? [data.output] : []);
+      if (msgsOut.length) msgsOut.forEach(r => add(r, 'bot'));
+      else add('⚠️ No reply received', 'bot');
+    } catch (err) {
+      console.error(err);
+      loader.textContent = '⚠️ error';
+    }
+  }
+
+  function add(text, role) {
+    const d = document.createElement('div');
+    d.className = `bubble ${role==='user'?'user':'bot'}`;
+    d.textContent = text;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+    return d;
+  }
+
+  function addTypingBubble() {
+    const d = document.createElement('div');
+    d.className = 'bubble bot';
+    d.innerHTML = '<span>...</span>';
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+    return d;
+  }
+
+  // initialize height on load:
+  syncShadow();
+  </script>
 </body>
 </html>
