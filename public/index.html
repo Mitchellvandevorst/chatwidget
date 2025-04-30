@@ -144,10 +144,11 @@
         width: 100%;
         height: 90vh;
       }
-      .intro-text {
-        font-size: 20px;   /* smaller font on mobile */
-        max-width: 90%;    /* allow wider lines */
-        white-space: pre-line;
+     .intro-text{
+        font-size:20px;      /* requested size         */
+        width:90%;           /* fill 90 % of container */
+        max-width:none;      /* don’t shrink to words  */
+        white-space:normal;  /* wrap naturally         */
       }
     }
   </style>
