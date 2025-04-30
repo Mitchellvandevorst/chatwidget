@@ -83,16 +83,16 @@
     .input-wrapper {
       flex: 1;
       display: flex;
-      align-items: center;        /* centres the editable box itself */
+      align-items: center;
       height: 44px;
       position: relative;
+      padding-top: 10px;           /* NEW -> centres caret */
     }
 
     #inputBox {
       flex: 1;
-      min-height: 44px;
+      min-height: 34px;            /* 44 – padding-top 10 */
       max-height: 120px;
-      width: 100%;
       overflow-y: auto;
       outline: none;
       border: none;
@@ -101,16 +101,13 @@
       line-height: 1.4;
       color: #262623;
       background: transparent;
-      padding: 0;
       white-space: pre-wrap;
       word-wrap: break-word;
-      display: flex;              /* NEW */
-      align-items: center;        /* NEW */
     }
 
     .placeholder {
       position: absolute;
-      left: 0; right: 0; top: 0; bottom: 0;
+      left: 0; right: 0; top: 10px; bottom: 0;  /* top = padding */
       display: flex;
       align-items: center;
       color: #7F7F84;
@@ -159,14 +156,14 @@
   </div>
 
 <script>
-  const msgs      = document.getElementById('msgs');
-  const inputBox  = document.getElementById('inputBox');
-  const ph        = document.getElementById('ph');
+  const msgs = document.getElementById('msgs');
+  const inputBox = document.getElementById('inputBox');
+  const ph = document.getElementById('ph');
 
   function onInput(){
     ph.classList.toggle('hidden', inputBox.textContent.trim().length);
     msgs.classList.add('hide-intro');
-    grow();
+    autoGrow();
   }
 
   function onKey(e){
@@ -183,22 +180,22 @@
     add('user', txt);
     inputBox.textContent = '';
     ph.classList.remove('hidden');
-    grow();
+    autoGrow();
   }
 
-  function grow(){
+  function autoGrow(){
     inputBox.style.height='auto';
-    inputBox.style.height=Math.max(inputBox.scrollHeight,44)+'px';
+    inputBox.style.height=Math.max(inputBox.scrollHeight,34)+'px'; // 34 = 44-10
   }
+  autoGrow();
 
   function add(role,text){
-    const div=document.createElement('div');
-    div.className=`bubble ${role}`;
-    div.textContent=text;
-    msgs.appendChild(div);
+    const d=document.createElement('div');
+    d.className=`bubble ${role}`;
+    d.textContent=text;
+    msgs.appendChild(d);
     msgs.scrollTop=msgs.scrollHeight;
   }
-  grow();
 </script>
 </body>
 </html>
