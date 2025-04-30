@@ -88,7 +88,7 @@
     left: 0;
     right: 0;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     padding: 10px 20px 10px 12px;
     background: #ffffff;
     border: 1px solid #F3F3F3;
@@ -101,33 +101,45 @@
   }
 
   .input-wrapper {
+    position: relative;
     flex: 1;
     display: flex;
-    align-items: stretch;
+    flex-direction: column;
   }
 
   .input-wrapper textarea {
-    flex: 1;
-    border: none;
-    border-radius: 12px;
-    resize: none;
     font-family: inherit;
-    background: #ffffff;
-    outline: none;
     font-size: 1em;
+    line-height: 1.4;
+    padding: 0;
+    border: none;
+    outline: none;
+    resize: none;
+    background: #fff;
     color: #7F7F84;
     min-height: 44px;
     max-height: 120px;
-    overflow-y: auto;
-    margin: 0;
-    padding-top: 11px;
-    line-height: 1.4;
-    display: block;
+    overflow-y: hidden;
+    width: 100%;
   }
 
   .input-wrapper textarea::placeholder {
     color: #7F7F84;
+  }
+
+  .input-shadow {
+    visibility: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-family: inherit;
+    font-size: 1em;
     line-height: 1.4;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
   }
 
   .send-btn {
@@ -175,12 +187,8 @@
 
   <form id="composer" class="composer">
     <div class="input-wrapper">
-      <textarea
-        id="input"
-        rows="1"
-        placeholder="Type your message…"
-        oninput="handleInputChange()"
-      ></textarea>
+      <textarea id="input" rows="1" placeholder="Type your message…" oninput="handleInputChange()"></textarea>
+      <div id="shadow" class="input-shadow"></div>
     </div>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
@@ -193,6 +201,7 @@ const webhook = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-
 const sessionId = crypto.randomUUID();
 const msgs = document.getElementById('msgs');
 const input = document.getElementById('input');
+const shadow = document.getElementById('shadow');
 const introText = document.getElementById('introText');
 
 document.getElementById('composer').addEventListener('submit', async e => {
@@ -209,6 +218,7 @@ input.addEventListener('keydown', async e => {
 
 input.addEventListener('input', () => {
   input.style.color = '#262623';
+  syncShadow();
 });
 
 function handleInputChange() {
@@ -216,7 +226,12 @@ function handleInputChange() {
   if (input.value.trim().length > 0) {
     msgs.classList.add('hide-intro');
   }
-  autoResize(input);
+  syncShadow();
+}
+
+function syncShadow() {
+  shadow.textContent = input.value + '\u200B'; // Ensure shadow grows even with empty line
+  input.style.height = shadow.offsetHeight + 'px';
 }
 
 async function sendMessage() {
@@ -224,8 +239,8 @@ async function sendMessage() {
   if (!txt) return;
   add(txt, 'user');
   input.value = '';
-  autoResize(input);
   input.style.color = '#7F7F84';
+  syncShadow();
   msgs.classList.add('hide-intro');
 
   const loader = addTypingBubble();
@@ -272,11 +287,6 @@ function addTypingBubble() {
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
   return div;
-}
-
-function autoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 }
 </script>
 </body>
