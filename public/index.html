@@ -104,7 +104,6 @@
     flex: 1;
     display: flex;
     align-items: center;
-    height: 44px;
   }
 
   .input-wrapper textarea {
@@ -117,10 +116,12 @@
     outline: none;
     font-size: 1em;
     color: #7F7F84;
-    height: 100%;
+    min-height: 44px;
+    max-height: 120px;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
-    line-height: normal;
+    line-height: 1.4;
   }
 
   .send-btn {
@@ -168,7 +169,12 @@
 
   <form id="composer" class="composer">
     <div class="input-wrapper">
-      <textarea id="input" rows="1" oninput="handleInputChange()">​</textarea> <!-- ← ZWSP here -->
+      <textarea
+        id="input"
+        rows="1"
+        placeholder="Type your message…"
+        oninput="handleInputChange()"
+      ></textarea>
     </div>
     <button type="submit" class="send-btn">
       <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="Send">
@@ -197,9 +203,6 @@ input.addEventListener('keydown', async e => {
 
 input.addEventListener('input', () => {
   input.style.color = '#262623';
-  if (input.value.trim() === '') {
-    input.value = '​'; // reinsert ZWSP if user deletes all
-  }
 });
 
 function handleInputChange() {
@@ -211,10 +214,10 @@ function handleInputChange() {
 }
 
 async function sendMessage() {
-  const txt = input.value.replace(/\u200B/g, '').trim(); // remove ZWSP
+  const txt = input.value.trim();
   if (!txt) return;
   add(txt, 'user');
-  input.value = '​'; // reset to ZWSP
+  input.value = '';
   autoResize(input);
   input.style.color = '#7F7F84';
   msgs.classList.add('hide-intro');
