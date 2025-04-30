@@ -103,7 +103,7 @@
   .input-wrapper {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: stretch;
   }
 
   .input-wrapper textarea {
@@ -120,7 +120,13 @@
     max-height: 120px;
     overflow-y: auto;
     margin: 0;
-    padding: 0;
+    padding-top: 11px;
+    line-height: 1.4;
+    display: block;
+  }
+
+  .input-wrapper textarea::placeholder {
+    color: #7F7F84;
     line-height: 1.4;
   }
 
