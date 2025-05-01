@@ -1,241 +1,150 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>ChatWidget</title>
+<meta charset="utf-8" />
+<title>ChatWidget</title>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      font: 1em/1.5 "Inter", sans-serif;
-      background: transparent;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: calc(100vh - 40px);
-      color: #262623;
-      box-sizing: border-box;
-    }
+<style>
+  /* ------- layout ------- */
+  body{
+    margin:0;padding:20px;font:1em/1.5 "Inter",sans-serif;
+    background:transparent;display:flex;justify-content:center;align-items:center;
+    height:calc(100vh - 40px);color:#262623;box-sizing:border-box;
+  }
+  .chat{
+    width:620px;height:520px;max-width:100%;
+    background:#fff;display:flex;flex-direction:column;overflow:hidden;
+  }
 
-    .chat {
-      width: 620px;
-      height: 520px;
-      max-width: 100%;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
+  /* ------- scroll area ------- */
+  .msgs{
+    flex:1;overflow-y:auto;display:flex;flex-direction:column;
+    gap:1.2rem;padding:1.2rem 1rem;
+  }
 
-    .msgs {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-      padding: 1.2rem 1rem;
-      margin-bottom: 90px;
-      position: relative;
-    }
+  /* ------- bubbles ------- */
+  .bubble{
+    display:inline-block;padding:.6rem 1rem;border-radius:18px;
+    white-space:pre-line;max-width:80%;word-break:break-word;font-size:1em;
+  }
+  .user{background:#214DBF;color:#fff;border-bottom-right-radius:0;align-self:flex-end;}
+  .bot {background:#F9F7F1;color:#262623;border-bottom-left-radius:0;align-self:flex-start;}
 
-    .intro-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 24px;
-      color: #E2E2E6;
-      text-align: center;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    .msgs.hide-intro .intro-text { opacity: 0; }
+  /* ------- composer ------- */
+  .composer{
+    display:flex;align-items:center;padding:1.2rem 1rem;
+    background:#fff;border-top:1px solid #E8E4E4;
+  }
+  .composer textarea{
+    flex:1;padding:.75rem;border:none;border-radius:12px;resize:none;
+    font-family:inherit;font-size:1em;line-height:1.4;color:#262623;
+    background:#fff;outline:none;overflow:hidden;
+  }
+  .send-btn{
+    background:none;border:none;cursor:pointer;margin-left:.5rem;display:flex;align-items:center;
+  }
+  .send-btn img{width:28px;height:28px;}
 
-    .bubble {
-      display: inline-block;
-      padding: 0.6rem 1rem;
-      border-radius: 18px;
-      white-space: pre-line;
-      max-width: 80%;
-      word-break: break-word;
-      font-size: 1em;
-    }
-    .user { background:#214DBF; color:#fff;  border-bottom-right-radius:0; align-self:flex-end; }
-    .bot  { background:#F9F7F1; color:#262623; border-bottom-left-radius:0; align-self:flex-start; }
-
-    .composer {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      display: flex;
-      align-items: center;
-      padding: 10px 20px 10px 12px;
-      background: #fff;
-      border: 1px solid #F3F3F3;
-      border-radius: 25px;
-      margin: 10px;
-      box-shadow: 0 0 20px 10px rgba(0,0,0,.02);
-      min-height: 64px;
-      box-sizing: border-box;
-    }
-
-    .input-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      position: relative;
-      min-height: 44px;
-    }
-
-    #inputBox {
-      flex: 1;
-      width: 100%;
-      min-height: 44px;
-      max-height: 120px;
-      overflow-y: auto;
-      outline: none;
-      border: none;
-      font-family: inherit;
-      font-size: 1em;
-      line-height: 44px;
-      color: #262623;
-      background: transparent;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      padding: 0;
-    }
-
-    .placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      color: #7F7F84;
-      pointer-events: none;
-      transition: opacity 0.2s;
-    }
-    .placeholder.hidden { opacity: 0; }
-
-    .send-btn {
-      margin-left: 0.5rem;
-      width: 44px; height: 44px;
-      border: none;
-      border-radius: 50%;
-      background: #F9F7F2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .send-btn img { height: 22px; opacity: 0.4; }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-        height: calc(100vh - 20px);
-      }
-      .chat {
-        width: 100%;
-        height: 90vh;
-      }
-      .intro-text{
-        font-size:20px;
-        width:90%;
-        max-width:none;
-        white-space:normal;
-      }
-    }
-  </style>
+  @media(max-width:600px){
+    body{padding:10px;height:calc(100vh - 20px);}
+    .chat{width:100%;height:90vh;}
+  }
+</style>
 </head>
 
 <body>
   <div class="chat">
-    <div id="msgs" class="msgs">
-      <div id="intro" class="intro-text">
-        Start talking to our product<br>agent Alex below.
-      </div>
-    </div>
+    <div id="msgs" class="msgs"></div>
 
-    <form id="composer" class="composer" onsubmit="onSend(event)">
-      <div class="input-wrapper" id="wrapper">
-        <div id="inputBox"
-             contenteditable="true"
-             oninput="onInput()"
-             onkeydown="onKey(event)"></div>
-        <div id="ph" class="placeholder">Type your message…</div>
-      </div>
-
+    <form id="composer" class="composer">
+      <textarea id="input" rows="1" placeholder="Type your message…"></textarea>
       <button type="submit" class="send-btn">
-        <img src="https://cdn-icons-png.flaticon.com/128/608/608336.png" alt="send">
+        <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/4/send-ja31aidt5vl3o9cqzg4hl.png/send-tmq8104cb40rfwri9rga2.png?_a=DATAdtAAZAA0" alt="Send">
       </button>
     </form>
   </div>
 
 <script>
-  const msgs     = document.getElementById('msgs');
-  const inputBox = document.getElementById('inputBox');
-  const ph       = document.getElementById('ph');
-  const wrapper  = document.getElementById('wrapper');
+  /* ---------- config ---------- */
+  const WEBHOOK   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
+  const sessionId = crypto.randomUUID(); // fresh session on each page load
 
-  function onInput() {
-    ph.classList.toggle('hidden', inputBox.textContent.trim());
-    msgs.classList.add('hide-intro');
-    adjustHeights();
-  }
+  /* ---------- DOM hooks ---------- */
+  const msgs  = document.getElementById('msgs');
+  const input = document.getElementById('input');
+  const form  = document.getElementById('composer');
 
-  function onKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      document.getElementById('composer').requestSubmit();
-    }
-  }
-
-  function onSend(e) {
-    e.preventDefault();
-    const txt = inputBox.textContent.trim();
-    if (!txt) return;
-
-    addBubble('user', txt);
-    inputBox.textContent = '';
-    ph.classList.remove('hidden');
-    adjustHeights();
-
-    fetch('https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: txt })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.reply) {
-        addBubble('bot', data.reply);
-      } else {
-        addBubble('bot', 'No reply received.');
-      }
-    })
-    .catch(err => {
-      console.error('Webhook error:', err);
-      addBubble('bot', 'Error connecting to server.');
-    });
-  }
-
-  function adjustHeights() {
-    inputBox.style.height = 'auto';
-    const multi = inputBox.scrollHeight > 44;
-    inputBox.style.lineHeight = multi ? '1.4' : '44px';
-    const h = Math.max(inputBox.scrollHeight, 44);
-    inputBox.style.height = h + 'px';
-    wrapper.style.height  = h + 'px';
-  }
-  adjustHeights();
-
-  function addBubble(role, text) {
+  /* ---------- helpers ---------- */
+  function add(text, role){
     const div = document.createElement('div');
     div.className = `bubble ${role}`;
     div.textContent = text;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  function addTypingBubble(){
+    const div = document.createElement('div');
+    div.className = 'bubble bot';
+    div.textContent = '…';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  /* ---------- textarea auto-grow ---------- */
+  function autoGrow(){
+    input.style.height = 'auto';
+    input.style.height = input.scrollHeight + 'px';
+  }
+  input.addEventListener('input', autoGrow);
+  autoGrow();
+
+  /* ---------- send logic ---------- */
+  form.addEventListener('submit', sendMessage);
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendMessage(e);
+    }
+  });
+
+  async function sendMessage(e){
+    if(e) e.preventDefault();
+    const txt = input.value.trim();
+    if(!txt) return;
+
+    add(txt,'user');
+    input.value = '';
+    autoGrow();
+
+    const loader = addTypingBubble();
+
+    try{
+      const res = await fetch(`${WEBHOOK}?action=sendMessage`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ chatInput: txt, sessionId })
+      });
+
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+
+      loader.remove();
+
+      const messages = Array.isArray(data.responses)
+        ? data.responses
+        : (data.output ? [data.output] : []);
+
+      (messages.length ? messages : ['⚠️ No reply received'])
+        .forEach(m => add(m,'bot'));
+
+    }catch(err){
+      console.error('fetch error →', err);
+      loader.textContent = '⚠️ error';
+    }
   }
 </script>
 </body>
