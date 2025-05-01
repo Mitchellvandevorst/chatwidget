@@ -1,56 +1,120 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>ChatWidget</title>
+  <meta charset="utf-8" />
+  <title>ChatWidget</title>
 
-<style>
-  /* ------- layout ------- */
-  body{
-    margin:0;padding:20px;font:1em/1.5 "Inter",sans-serif;
-    background:transparent;display:flex;justify-content:center;align-items:center;
-    height:calc(100vh - 40px);color:#262623;box-sizing:border-box;
-  }
-  .chat{
-    width:620px;height:520px;max-width:100%;
-    background:#fff;display:flex;flex-direction:column;overflow:hidden;
-  }
+  <style>
+    /* ---------- layout ---------- */
+    body {
+      margin: 0;
+      padding: 20px;
+      font: 1em/1.5 "Inter", sans-serif;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 40px);
+      color: #262623;
+      box-sizing: border-box;
+    }
 
-  /* ------- scroll area ------- */
-  .msgs{
-    flex:1;overflow-y:auto;display:flex;flex-direction:column;
-    gap:1.2rem;padding:1.2rem 1rem;
-  }
+    .chat {
+      width: 620px;
+      height: 520px;
+      max-width: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-  /* ------- bubbles ------- */
-  .bubble{
-    display:inline-block;padding:.6rem 1rem;border-radius:18px;
-    white-space:pre-line;max-width:80%;word-break:break-word;font-size:1em;
-  }
-  .user{background:#214DBF;color:#fff;border-bottom-right-radius:0;align-self:flex-end;}
-  .bot {background:#F9F7F1;color:#262623;border-bottom-left-radius:0;align-self:flex-start;}
+    /* ---------- messages ---------- */
+    .msgs {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;                     /* Increased gap between bubbles */
+      padding: 1.2rem 1rem 1.2rem 1rem;/* Add padding on top and bottom */
+    }
 
-  /* ------- composer ------- */
-  .composer{
-    display:flex;align-items:center;padding:1.2rem 1rem;
-    background:#fff;border-top:1px solid #E8E4E4;
-  }
-  .composer textarea{
-    flex:1;padding:.75rem;border:none;border-radius:12px;resize:none;
-    font-family:inherit;font-size:1em;line-height:1.4;color:#262623;
-    background:#fff;outline:none;overflow:hidden;
-  }
-  .send-btn{
-    background:none;border:none;cursor:pointer;margin-left:.5rem;display:flex;align-items:center;
-  }
-  .send-btn img{width:28px;height:28px;}
+    .bubble {
+      display: inline-block;
+      padding: .6rem 1rem;
+      border-radius: 18px;
+      white-space: pre-line;
+      max-width: 80%;
+      word-break: break-word;
+      font-size: 1em;
+    }
 
-  @media(max-width:600px){
-    body{padding:10px;height:calc(100vh - 20px);}
-    .chat{width:100%;height:90vh;}
-  }
-</style>
+    .user {
+      background: #214DBF;
+      color: #fff;
+      border-bottom-right-radius: 0;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #F9F7F1;
+      color: #262623;
+      border-bottom-left-radius: 0;
+      align-self: flex-start;
+    }
+
+    /* ---------- composer ---------- */
+    .composer {
+      display: flex;
+      align-items: center;
+      padding: 1.2rem 1rem;            /* Match top/bottom padding to msgs */
+      background: #ffffff;
+      border-top: 1px solid #E8E4E4;   /* Full-width horizontal line */
+    }
+
+    .composer textarea {
+      flex: 1;
+      padding: .75rem;
+      border: none;
+      border-radius: 12px;
+      resize: none;
+      font-family: inherit;
+      background: #ffffff;
+      outline: none;
+      font-size: 1em;
+      color: #262623;
+    }
+
+    .send-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .send-btn img {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* ---------- mobile ---------- */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+        height: calc(100vh - 20px);
+      }
+      .chat {
+        width: 100%;
+        height: 90vh;
+      }
+    }
+  </style>
 </head>
+
+
 
 <body>
   <div class="chat">
@@ -63,74 +127,49 @@
       </button>
     </form>
   </div>
+</body>
+</html>
+
 
 <script>
-  /* ---------- config ---------- */
-  const WEBHOOK   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-  const sessionId = crypto.randomUUID(); // fresh session on each page load
+  const webhook   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
+  const sessionId = crypto.randomUUID();         // always fresh session on reload
 
-  /* ---------- DOM hooks ---------- */
   const msgs  = document.getElementById('msgs');
   const input = document.getElementById('input');
-  const form  = document.getElementById('composer');
 
-  /* ---------- helpers ---------- */
-  function add(text, role){
-    const div = document.createElement('div');
-    div.className = `bubble ${role}`;
-    div.textContent = text;
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    return div;
-  }
+  document.getElementById('composer').addEventListener('submit', async e => {
+    e.preventDefault();
+    await sendMessage();
+  });
 
-  function addTypingBubble(){
-    const div = document.createElement('div');
-    div.className = 'bubble bot';
-    div.textContent = '…';
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    return div;
-  }
-
-  /* ---------- textarea auto-grow ---------- */
-  function autoGrow(){
-    input.style.height = 'auto';
-    input.style.height = input.scrollHeight + 'px';
-  }
-  input.addEventListener('input', autoGrow);
-  autoGrow();
-
-  /* ---------- send logic ---------- */
-  form.addEventListener('submit', sendMessage);
-  input.addEventListener('keydown', e=>{
-    if(e.key==='Enter' && !e.shiftKey){
+  input.addEventListener('keydown', async e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(e);
+      await sendMessage();
     }
   });
 
-  async function sendMessage(e){
-    if(e) e.preventDefault();
+  async function sendMessage() {
     const txt = input.value.trim();
-    if(!txt) return;
+    if (!txt) return;
 
-    add(txt,'user');
+    add(txt, 'user');
     input.value = '';
-    autoGrow();
 
     const loader = addTypingBubble();
 
-    try{
-      const res = await fetch(`${WEBHOOK}?action=sendMessage`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+    try {
+      /* ---------- only change that ever mattered ---------- */
+      const res = await fetch(`${webhook}?action=sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chatInput: txt, sessionId })
       });
-
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      /* ---------------------------------------------------- */
 
       const data = await res.json();
+      console.log('n8n responded:', data);
 
       loader.remove();
 
@@ -138,13 +177,34 @@
         ? data.responses
         : (data.output ? [data.output] : []);
 
-      (messages.length ? messages : ['⚠️ No reply received'])
-        .forEach(m => add(m,'bot'));
+      if (messages.length > 0) {
+        messages.forEach(r => add(r, 'bot'));
+      } else {
+        add('⚠️ No reply received', 'bot');
+      }
 
-    }catch(err){
-      console.error('fetch error →', err);
+    } catch (err) {
+      console.error(err);
       loader.textContent = '⚠️ error';
     }
+  }
+
+  function add(text, role) {
+    const div = document.createElement('div');
+    div.className = `bubble ${role === 'user' ? 'user' : 'bot'}`;
+    div.textContent = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  function addTypingBubble() {
+    const div = document.createElement('div');
+    div.className   = 'bubble bot';
+    div.innerHTML   = '<span>...</span>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
   }
 </script>
 </body>
