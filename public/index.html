@@ -1,78 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <!-- NEW – let the browser recalc 𝑑vh on keyboard reveal -->
-  <meta name="viewport"
-        content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>ChatWidget</title>
-
-  <style>
-    /* ---------- base layout ---------- */
-    :root { --pad:20px }                        /* NEW – easy body padding */
-    body{
-      margin:0; padding:var(--pad);
-      font:1em/1.5 "Inter",sans-serif;
-      background:transparent;
-      display:flex;justify-content:center;align-items:center;
-      height:calc(100dvh - (var(--pad)*2));    /* NEW – 100dvh */
-      color:#262623; box-sizing:border-box;
-    }
-    .chat{
-      width:620px; max-width:100%;
-      height:520px;
-      background:#fff; display:flex;flex-direction:column;
-      overflow:hidden; position:relative;
-    }
-
-    /* ---------- scroll area ---------- */
-    .msgs{ flex:1; overflow-y:auto; display:flex;
-      flex-direction:column; gap:1.2rem;
-      padding:1.2rem 1rem; margin-bottom:90px; position:relative;}
-    .intro-text{ position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);font-size:24px;color:#E2E2E6;
-      text-align:center;pointer-events:none;transition:opacity .3s;}
-    .msgs.hide-intro .intro-text{opacity:0}
-
-    /* ---------- bubbles -------------- */
-    .bubble{display:inline-block;padding:.6rem 1rem;border-radius:18px;
-      white-space:pre-line;max-width:80%;word-break:break-word;font-size:1em;}
-    .user{background:#0c0c47;color:#fff;border-bottom-right-radius:0;align-self:flex-end}
-    .bot {background:#F4F4F4;color:#262623;border-bottom-left-radius:0;align-self:flex-start}
-
-    /* ---------- composer ------------- */
-    .composer{position:absolute;bottom:0;left:0;right:0;display:flex;
-      align-items:center;padding:10px 20px 10px 12px;background:#fff;
-      border:1px solid #F3F3F3;border-radius:20px;margin:10px;
-      box-shadow:0 0 20px 10px rgba(0,0,0,.02);min-height:64px;box-sizing:border-box}
-    .input-wrapper{flex:1;display:flex;align-items:center;position:relative;min-height:44px}
-    #inputBox{flex:1;width:100%;min-height:44px;max-height:120px;overflow-y:auto;
-      outline:none;border:none;font-family:inherit;font-size:1em;
-      line-height:44px;color:#262623;background:transparent;
-      white-space:pre-wrap;word-wrap:break-word;padding:0}
-    .placeholder{position:absolute;inset:0;display:flex;align-items:center;
-      color:#7F7F84;pointer-events:none;transition:opacity .2s}
-    .placeholder.hidden{opacity:0}
-    .send-btn{margin-left:.5rem;width:44px;height:44px;border:none;border-radius:50%;
-      background:#F4F4F4;display:flex;align-items:center;justify-content:center;cursor:pointer}
-    .send-btn img{height:22px;opacity:.4}
-
-    /* ---------- mobile tweaks -------- */
-    @media(max-width:600px){
-      :root{ --pad:10px }                       /* NEW – thinner gutter    */
-      body{ height:100dvh }                     /* NEW – true visual area  */
-      .chat{
-        position:fixed;                         /* NEW – pin to top        */
-        top:var(--pad); left:var(--pad); right:var(--pad);
-        height:calc(100dvh - (var(--pad)*2));   /* NEW – shrink on typing  */
-        max-height:none;
-      }
-      .intro-text{font-size:20px;width:90%;white-space:normal}
-    }
-  </style>
-</head>
-
-<body>
+<!-- --- Chat widget for Elementor ---  -->
+<div id="chat-root">
   <div class="chat">
     <div id="msgs" class="msgs">
       <div id="intro" class="intro-text">
@@ -91,27 +18,92 @@
       </button>
     </form>
   </div>
+</div>
+
+<style>
+/* =============== LAYOUT =============== */
+:root{ --safeTop:env(safe-area-inset-top,0px); --safeBottom:env(safe-area-inset-bottom,0px) }
+
+/* the wrapper is fixed so Elementor’s own spacing can’t push it down */
+#chat-root{
+  position:fixed;                /* always pinned */
+  top:var(--safeTop); left:0; right:0;
+  height:calc(100dvh - var(--safeTop));
+  z-index:2147483647;            /* over Elementor header/footer */
+  pointer-events:none;           /* allow clicks only inside chat */
+  display:flex;justify-content:center;
+}
+.chat{
+  pointer-events:auto;           /* re-enable clicks */
+  width:100%; max-width:620px;
+  margin:0 auto;                 /* centred horizontally */
+  height:100%;
+  background:#fff;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* =============== SCROLLER ============== */
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1.2rem;
+      padding:1.2rem 1rem; margin-bottom:90px; position:relative;}
+.intro-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            font-size:24px;color:#E2E2E6;text-align:center;pointer-events:none;
+            transition:opacity .3s;}
+.msgs.hide-intro .intro-text{opacity:0}
+
+/* =============== BUBBLES =============== */
+.bubble{display:inline-block;padding:.6rem 1rem;border-radius:18px;
+        white-space:pre-line;max-width:80%;word-break:break-word}
+.user{background:#0c0c47;color:#fff;border-bottom-right-radius:0;align-self:flex-end}
+.bot {background:#F4F4F4;color:#262623;border-bottom-left-radius:0;align-self:flex-start}
+
+/* =============== COMPOSER ============== */
+.composer{position:absolute;left:0;right:0;bottom:var(--safeBottom);
+          display:flex;align-items:center;padding:10px 20px 10px 12px;
+          background:#fff;border:1px solid #F3F3F3;border-radius:20px;margin:10px;
+          box-shadow:0 0 20px 10px rgba(0,0,0,.02);min-height:64px;box-sizing:border-box}
+.input-wrapper{flex:1;display:flex;align-items:center;position:relative;min-height:44px}
+#inputBox{flex:1;width:100%;min-height:44px;max-height:120px;overflow-y:auto;
+          outline:none;border:none;font-family:inherit;font-size:1em;
+          line-height:44px;color:#262623;background:transparent;
+          white-space:pre-wrap;word-wrap:break-word;padding:0}
+.placeholder{position:absolute;inset:0;display:flex;align-items:center;color:#7F7F84;
+             pointer-events:none;transition:opacity .2s}
+.placeholder.hidden{opacity:0}
+.send-btn{margin-left:.5rem;width:44px;height:44px;border:none;border-radius:50%;
+          background:#F4F4F4;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.send-btn img{height:22px;opacity:.4}
+
+/* =============== DESKTOP QUICK TWEAKS =============== */
+@media(min-width:601px){
+  #chat-root{
+    position:static;             /* let Elementor place it normally */
+    height:auto; pointer-events:auto;
+  }
+  .chat{height:520px;border-radius:12px}
+}
+</style>
 
 <script>
-/* ---------- ORIGINAL VARS ---------- */
-const msgs = document.getElementById('msgs');
-const inputBox = document.getElementById('inputBox');
-const ph = document.getElementById('ph');
-const wrapper = document.getElementById('wrapper');
+/* ---------- DOM shortcuts ---------- */
+const msgs=document.getElementById('msgs');
+const inputBox=document.getElementById('inputBox');
+const ph=document.getElementById('ph');
+const wrapper=document.getElementById('wrapper');
 
-/* ---------- n8n CONFIG ------------- */
-const webhook   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-const sessionId = crypto.randomUUID();
+/* ---------- n8n CONFIG ---------- */
+const webhook='https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
+const sessionId=crypto.randomUUID();
 
-/* ---------- UI EVENTS -------------- */
+/* ---------- UI EVENTS ------------ */
 function onInput(){
   ph.classList.toggle('hidden',inputBox.textContent.trim());
   msgs.classList.add('hide-intro');
   adjustHeights();
 }
 function onKey(e){
-  if(e.key==='Enter' && !e.shiftKey){
-    e.preventDefault();document.getElementById('composer').requestSubmit();
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    document.getElementById('composer').requestSubmit();
   }
 }
 async function onSend(e){
@@ -125,7 +117,7 @@ async function onSend(e){
   await talkToServer(txt);
 }
 
-/* ---------- HEIGHT TWEAK ----------- */
+/* ---------- HEIGHT TWEAK ---------- */
 function adjustHeights(){
   inputBox.style.height='auto';
   const multi=inputBox.scrollHeight>44;
@@ -136,43 +128,36 @@ function adjustHeights(){
 }
 adjustHeights();
 
-/* ---------- BUBBLES ---------------- */
+/* ---------- ADD BUBBLE ------------ */
 function addBubble(role,text){
   const div=document.createElement('div');
-  div.className=`bubble ${role}`;
-  div.textContent=text;
-  msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
+  div.className=`bubble ${role}`;div.textContent=text;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
   return div;
 }
 
-/* ---------- TALK TO n8n ----------- */
+/* ---------- TALK TO n8n ---------- */
 async function talkToServer(message){
   const loader=addBubble('bot','…');
   try{
     const res=await fetch(`${webhook}?action=sendMessage`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({chatInput:message,sessionId})
     });
-    const data=await res.json(); loader.remove();
-    const replies=Array.isArray(data.responses) ? data.responses
-                  : (data.output ? [data.output]:[]);
+    const data=await res.json();loader.remove();
+    const replies=Array.isArray(data.responses)?data.responses:
+                   (data.output?[data.output]:[]);
     (replies.length?replies:['⚠️ No reply received'])
       .forEach(r=>addBubble('bot',r));
   }catch(err){console.error(err);loader.textContent='⚠️ error'}
 }
 
-/* ---------- NEW – keep chat flush with keyboard on any mobile -------- */
-if(window.visualViewport && window.innerWidth<=600){
+/* ---------- KEEP HEIGHT IN SYNC WITH KEYBOARD ---------- */
+if(window.visualViewport){             /* all modern mobile browsers */
+  const chatRoot=document.getElementById('chat-root');
   const vv=window.visualViewport;
-  const chat=document.querySelector('.chat');
-  const pad=parseInt(getComputedStyle(document.documentElement)
-              .getPropertyValue('--pad'))*2;
-  function sizeToViewport(){ chat.style.height=(vv.height-pad)+'px' }
-  vv.addEventListener('resize',sizeToViewport);
-  sizeToViewport();                               // initial call
+  const handler=()=>chatRoot.style.height=vv.height+'px';
+  vv.addEventListener('resize',handler);
+  handler();                           /* first call */
 }
 </script>
-</body>
-</html>
