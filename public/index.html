@@ -136,14 +136,16 @@
 
     /* ------------ mobile tweaks ------------- */
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-        height: calc(100vh - 20px);
-      }
-      .chat {
-        width: 100%;
-        height: 120vh;
-      }
+  body {
+      padding: 10px;
+      height: 100vh; /* true full height */
+    }
+  .chat {
+      width: 100%;
+      height: calc(100vh - 20px); /* match body padding */
+      max-height: 100%;
+         }
+    }
      .intro-text{
         font-size:20px;      /* requested size         */
         width:90%;           /* fill 90 % of container */
