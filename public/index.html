@@ -5,32 +5,31 @@
   <title>ChatWidget</title>
 
   <style>
-    body {
+    html, body {
       margin: 0;
-      padding: 20px;
+      padding: 0;
       font: 1em/1.5 "Inter", sans-serif;
       background: transparent;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: calc(100vh - 40px);
       color: #262623;
-      box-sizing: border-box;
+      height: 100dvh;
+      overflow: hidden;
     }
 
-    /* ------------ chat container ------------ */
     .chat {
       width: 620px;
-      height: 520px;
       max-width: 100%;
+      height: 100dvh;
       background: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      position: relative;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
     }
 
-    /* ------------ scroll area --------------- */
     .msgs {
       flex: 1;
       overflow-y: auto;
@@ -38,7 +37,7 @@
       flex-direction: column;
       gap: 1.2rem;
       padding: 1.2rem 1rem;
-      margin-bottom: 90px; /* space for composer */
+      margin-bottom: 90px;
       position: relative;
     }
 
@@ -53,9 +52,9 @@
       pointer-events: none;
       transition: opacity 0.3s;
     }
+
     .msgs.hide-intro .intro-text { opacity: 0; }
 
-    /* ------------ message bubbles ----------- */
     .bubble {
       display: inline-block;
       padding: 0.6rem 1rem;
@@ -65,13 +64,12 @@
       word-break: break-word;
       font-size: 1em;
     }
-    .user { background:#0c0c47; color:#fff;  border-bottom-right-radius:0; align-self:flex-end; }
+
+    .user { background:#0c0c47; color:#fff; border-bottom-right-radius:0; align-self:flex-end; }
     .bot  { background:#F4F4F4; color:#262623; border-bottom-left-radius:0; align-self:flex-start; }
 
-    /* ------------ composer ------------------ */
     .composer {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
+      position: relative;
       display: flex;
       align-items: center;
       padding: 10px 20px 10px 12px;
@@ -89,7 +87,7 @@
       display: flex;
       align-items: center;
       position: relative;
-      min-height: 44px;          /* baseline height */
+      min-height: 44px;
     }
 
     #inputBox {
@@ -102,7 +100,7 @@
       border: none;
       font-family: inherit;
       font-size: 1em;
-      line-height: 44px;         /* caret centred when single-line */
+      line-height: 44px;
       color: #262623;
       background: transparent;
       white-space: pre-wrap;
@@ -119,6 +117,7 @@
       pointer-events: none;
       transition: opacity 0.2s;
     }
+
     .placeholder.hidden { opacity: 0; }
 
     .send-btn {
@@ -132,26 +131,11 @@
       justify-content: center;
       cursor: pointer;
     }
+
     .send-btn img { height: 22px; opacity: 0.4; }
 
-    /* ------------ mobile tweaks ------------- */
     @media (max-width: 600px) {
-  body      {
-      padding: 10px;
-      height: 100vh; /* true full height */
-            }
-  .chat     {
-      width: 100%;
-      height: calc(100vh - 20px); /* match body padding */
-      max-height: 100%;
-            }
-    }
-     .intro-text{
-        font-size:20px;      /* requested size         */
-        width:90%;           /* fill 90 % of container */
-        max-width:none;      /* don’t shrink to words  */
-        white-space:normal;  /* wrap naturally         */
-      }
+      .intro-text { font-size: 20px; width: 90%; max-width: none; white-space: normal; }
     }
   </style>
 </head>
@@ -179,90 +163,100 @@
     </form>
   </div>
 
-<script>
-  /* ----------- ORIGINAL UI VARS ----------- */
-  const msgs     = document.getElementById('msgs');
-  const inputBox = document.getElementById('inputBox');
-  const ph       = document.getElementById('ph');
-  const wrapper  = document.getElementById('wrapper');
+  <script>
+    const msgs     = document.getElementById('msgs');
+    const inputBox = document.getElementById('inputBox');
+    const ph       = document.getElementById('ph');
+    const wrapper  = document.getElementById('wrapper');
+    const chat     = document.querySelector('.chat');
 
-  /* ----------- n8n CONFIG (added) ---------- */
-  const webhook   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
-  const sessionId = crypto.randomUUID();
+    const webhook   = 'https://deepfeed.app.n8n.cloud/webhook/17893bdb-97ae-4ba9-9c97-7ec6f0e644bb';
+    const sessionId = crypto.randomUUID();
 
-  /* ----------- UI EVENTS (unchanged) ------- */
-  function onInput() {
-    ph.classList.toggle('hidden', inputBox.textContent.trim());
-    msgs.classList.add('hide-intro');
-    adjustHeights();
-  }
+    function onInput() {
+      ph.classList.toggle('hidden', inputBox.textContent.trim());
+      msgs.classList.add('hide-intro');
+      adjustHeights();
+    }
 
-  function onKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    function onKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('composer').requestSubmit();
+      }
+    }
+
+    async function onSend(e) {
       e.preventDefault();
-      document.getElementById('composer').requestSubmit();
+      const txt = inputBox.textContent.trim();
+      if (!txt) return;
+
+      addBubble('user', txt);
+      inputBox.textContent = '';
+      ph.classList.remove('hidden');
+      adjustHeights();
+
+      await talkToServer(txt);
     }
-  }
 
-  async function onSend(e) {
-    e.preventDefault();
-    const txt = inputBox.textContent.trim();
-    if (!txt) return;
+    function adjustHeights() {
+      inputBox.style.height = 'auto';
+      const multi = inputBox.scrollHeight > 44;
+      inputBox.style.lineHeight = multi ? '1.4' : '44px';
+      const h = Math.max(inputBox.scrollHeight, 44);
+      inputBox.style.height = h + 'px';
+      wrapper.style.height  = h + 'px';
+      msgs.style.marginBottom = (h + 32) + 'px';
+    }
 
-    addBubble('user', txt);
-    inputBox.textContent = '';
-    ph.classList.remove('hidden');
     adjustHeights();
 
-    await talkToServer(txt);   // <-- added
-  }
-
-  /* ----------- HEIGHT TWEAK (original) ----- */
-  function adjustHeights() {
-    inputBox.style.height = 'auto';
-    const multi = inputBox.scrollHeight > 44;
-    inputBox.style.lineHeight = multi ? '1.4' : '44px';
-    const h = Math.max(inputBox.scrollHeight, 44);
-    inputBox.style.height = h + 'px';
-    wrapper.style.height  = h + 'px';
-  }
-  adjustHeights(); /* initial */
-
-  /* ----------- BUBBLE HELPER --------------- */
-  function addBubble(role, text) {
-    const div = document.createElement('div');
-    div.className = `bubble ${role}`;          // (fixed the missing back-ticks)
-    div.textContent = text;
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    return div;
-  }
-
-  /* ----------- TALK TO n8n (added) --------- */
-  async function talkToServer(message) {
-    const loader = addBubble('bot', '…');
-
-    try {
-      const res = await fetch(`${webhook}?action=sendMessage`, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ chatInput: message, sessionId })
-      });
-      const data = await res.json();
-      loader.remove();
-
-      const replies = Array.isArray(data.responses)
-        ? data.responses
-        : (data.output ? [data.output] : []);
-
-      (replies.length ? replies : ['⚠️ No reply received'])
-        .forEach(r => addBubble('bot', r));
-
-    } catch (err) {
-      console.error(err);
-      loader.textContent = '⚠️ error';
+    function addBubble(role, text) {
+      const div = document.createElement('div');
+      div.className = `bubble ${role}`;
+      div.textContent = text;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      return div;
     }
-  }
-</script>
+
+    async function talkToServer(message) {
+      const loader = addBubble('bot', '…');
+      try {
+        const res = await fetch(`${webhook}?action=sendMessage`, {
+          method : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body   : JSON.stringify({ chatInput: message, sessionId })
+        });
+        const data = await res.json();
+        loader.remove();
+
+        const replies = Array.isArray(data.responses)
+          ? data.responses
+          : (data.output ? [data.output] : []);
+
+        (replies.length ? replies : ['⚠️ No reply received'])
+          .forEach(r => addBubble('bot', r));
+      } catch (err) {
+        console.error(err);
+        loader.textContent = '⚠️ error';
+      }
+    }
+
+    // Shrink chat on keyboard open (mobile)
+    inputBox.addEventListener('focus', () => {
+      setTimeout(() => {
+        chat.style.height = window.innerHeight + 'px';
+      }, 50);
+    });
+
+    inputBox.addEventListener('blur', () => {
+      chat.style.height = '100dvh';
+    });
+
+    window.addEventListener('resize', () => {
+      chat.style.height = window.innerHeight + 'px';
+    });
+  </script>
 </body>
 </html>
