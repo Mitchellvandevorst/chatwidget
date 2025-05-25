@@ -229,7 +229,12 @@
   }
 
 window.addEventListener('load', () => {
-  addBubble('bot', "Hi! I'm Alex, and I'm here to help you give feedback. What’s one thing you think could be improved?");
+  const loader = addBubble('bot', '…'); // Show typing indicator
+
+  setTimeout(() => {
+    loader.remove(); // Remove dots
+    addBubble('bot', "Hi! I'm Alex, and I'm here to help you give feedback. What’s one thing you think could be improved?");
+  }, 800); // Adjust delay as needed (in ms)
 });
 
 
