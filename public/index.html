@@ -228,30 +228,10 @@
     }
   }
 
-  window.addEventListener('load', sendWelcomeMessage);
+window.addEventListener('load', () => {
+  addBubble('bot', "👋 Hi! I'm Alex, your product agent. Ask me anything.");
+});
 
-async function sendWelcomeMessage() {
-  try {
-    const res = await fetch('https://deepfeed.app.n8n.cloud/webhook/chat-opened', {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ sessionId })
-    });
-
-    const data = await res.json();
-
-    const replies = Array.isArray(data.responses)
-      ? data.responses
-      : (data.output ? [data.output] : []);
-
-    (replies.length ? replies : ['⚠️ No welcome message received'])
-      .forEach(r => addBubble('bot', r));
-
-  } catch (err) {
-    console.error('Welcome message error:', err);
-    addBubble('bot', '⚠️ Failed to load welcome message');
-  }
-}
 
 </script>
 </body>
